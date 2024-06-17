@@ -29,8 +29,10 @@ async function run() {
 
     const data = fs.readFileSync(`${process.env.GITHUB_WORKSPACE}/${inputs.path}`, 'utf8');
     const json = JSON.parse(data);
-
-    const coverage = `<!--json:${JSON.stringify(inputs.id)}-->
+    const meta = {
+      commentFrom: inputs.id,
+    }
+    const coverage = `<!--json:${JSON.stringify(meta)}-->
 |${inputs.title}| %                           | values                                                              |
 |---------------|:---------------------------:|:-------------------------------------------------------------------:|
 |Statements     |${json.total.statements.pct}%|( ${json.total.statements.covered} / ${json.total.statements.total} )|
@@ -61,8 +63,7 @@ async function run() {
 
 async function deletePreviousComments({ id, owner, repo, octokit, issueNumber }) {
   const onlyPreviousCoverageComments = (comment) => {
-    const escapedId = id.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    const regexMarker = new RegExp(`^<!--json:${JSON.stringify(escapedId)}-->`);
+    const regexMarker = /^<!--json:{.*?}-->/;
     const extractMetaFromMarker = (body) => JSON.parse(body.replace(/^<!--json:|-->(.|\n|\r)*$/g, ''));
 
     if (comment.user.type !== 'Bot') return false;
@@ -70,7 +71,7 @@ async function deletePreviousComments({ id, owner, repo, octokit, issueNumber })
 
     const meta = extractMetaFromMarker(comment.body);
 
-    return meta.commentFrom === originMeta.commentFrom;
+    return meta.commentFrom === id;
   }
 
   const asyncDeleteComment = (comment) => {
