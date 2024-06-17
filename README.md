@@ -92,9 +92,7 @@ jobs:
           path: project-2/coverage/coverage-summary.json
           title: Karma Test Coverage
           id: project-2
-
 ```
-
 
 ## License
 
