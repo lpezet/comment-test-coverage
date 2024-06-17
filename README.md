@@ -48,7 +48,10 @@ Feel free to submit a PR to this repo and ask me to update the action, but if yo
 
 ## Use in monorepo
 
-Specify a value for the `id` input to the action for each project in your monorepo.
+When using a monorepo in Github, multiple use of comment-test-coverage actions will overwrite each other.
+To address that, specify a value for the `id` input to the action for each project in your monorepo.
+
+For example:
 
 ```yml
 name: test-pull-request
