@@ -34508,7 +34508,7 @@ async function run() {
 `;
 
     await deletePreviousComments({
-      id,
+      id: inputs.id,
       issueNumber,
       octokit,
       owner,
