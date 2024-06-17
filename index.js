@@ -3,16 +3,13 @@ const core = require("@actions/core");
 const github = require("@actions/github");
 const fs = require('fs');
 
-const originMeta = {
-  commentFrom: 'Comment Test Coverage as table',
-}
-
 async function run() {
   try {
     const inputs = {
       token: core.getInput("token"),
       path: core.getInput("path"),
       title: core.getInput("title"),
+      id: core.getInput("id"),
     };
 
     const {
@@ -32,8 +29,10 @@ async function run() {
 
     const data = fs.readFileSync(`${process.env.GITHUB_WORKSPACE}/${inputs.path}`, 'utf8');
     const json = JSON.parse(data);
-
-    const coverage = `<!--json:${JSON.stringify(originMeta)}-->
+    const meta = {
+      commentFrom: inputs.id,
+    }
+    const coverage = `<!--json:${JSON.stringify(meta)}-->
 |${inputs.title}| %                           | values                                                              |
 |---------------|:---------------------------:|:-------------------------------------------------------------------:|
 |Statements     |${json.total.statements.pct}%|( ${json.total.statements.covered} / ${json.total.statements.total} )|
@@ -43,6 +42,7 @@ async function run() {
 `;
 
     await deletePreviousComments({
+      id: inputs.id,
       issueNumber,
       octokit,
       owner,
@@ -61,7 +61,7 @@ async function run() {
   }
 }
 
-async function deletePreviousComments({ owner, repo, octokit, issueNumber }) {
+async function deletePreviousComments({ id, owner, repo, octokit, issueNumber }) {
   const onlyPreviousCoverageComments = (comment) => {
     const regexMarker = /^<!--json:{.*?}-->/;
     const extractMetaFromMarker = (body) => JSON.parse(body.replace(/^<!--json:|-->(.|\n|\r)*$/g, ''));
@@ -71,7 +71,7 @@ async function deletePreviousComments({ owner, repo, octokit, issueNumber }) {
 
     const meta = extractMetaFromMarker(comment.body);
 
-    return meta.commentFrom === originMeta.commentFrom;
+    return meta.commentFrom === id;
   }
 
   const asyncDeleteComment = (comment) => {

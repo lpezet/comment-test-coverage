@@ -46,6 +46,58 @@ Feel free to submit a PR to this repo and ask me to update the action, but if yo
 3. Commit changes
 4. Create a new release on GitHub to publish latest version of the action. See https://help.github.com/en/actions/building-actions/publishing-actions-in-github-marketplace
 
+## Use in monorepo
+
+When using a monorepo in Github, multiple use of comment-test-coverage actions will overwrite each other.
+To address that, specify a value for the `id` input to the action for each project in your monorepo.
+
+For example:
+
+```yml
+name: test-pull-request
+on: [pull_request]
+jobs:
+  build-project-1:
+    defaults:
+      run:
+        working-directory: project-1
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v1
+
+      - name: Run Jasmine tests
+        run: npm run test -- --no-watch --no-progress --browsers=ChromeHeadlessCI
+
+      - name: Comment Test Coverage
+        uses: AthleticNet/comment-test-coverage@1.1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          path: project-1/coverage/coverage-summary.json
+          title: Karma Test Coverage
+          id: project-1
+  build-project-2:
+    defaults:
+      run:
+        working-directory: project-2
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v1
+
+      - name: Run Jasmine tests
+        run: npm run test -- --no-watch --no-progress --browsers=ChromeHeadlessCI
+
+      - name: Comment Test Coverage
+        uses: AthleticNet/comment-test-coverage@1.1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          path: project-2/coverage/coverage-summary.json
+          title: Karma Test Coverage
+          id: project-2
+```
+
+
 ## License
 
 Repurposed from https://github.com/peter-evans/commit-comment, Copyright (c) 2019 Peter Evans and https://github.com/mshick/add-pr-comment, Copyright (c) 2019 Michael Shick

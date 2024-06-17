@@ -22,4 +22,13 @@ jobs:
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
         path: test/_stubs/coverage-summary-100-pct.json
-        title: Test Coverage
+        title: Test Coverage - Project 1
+        id: project-1
+    
+    - uses: ./
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        path: test/_stubs/coverage-summary-90-pct.json
+        title: Test Coverage - Project 2
+        id: project-2
+    
