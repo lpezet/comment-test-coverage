@@ -3,12 +3,6 @@ const core = require("@actions/core");
 const github = require("@actions/github");
 const fs = require('fs');
 
-/*
-const originMeta = {
-  commentFrom: 'Comment Test Coverage as table',
-}
-*/
-
 async function run() {
   try {
     const inputs = {
@@ -67,9 +61,7 @@ async function run() {
 
 async function deletePreviousComments({ id, owner, repo, octokit, issueNumber }) {
   const onlyPreviousCoverageComments = (comment) => {
-    // const regexMarker = /^<!--json:{.*?}-->/;
-    const escapedId = id.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // Escape special characters
-
+    const escapedId = id.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     const regexMarker = new RegExp(`^<!--json:${JSON.stringify(escapedId)}-->`);
     const extractMetaFromMarker = (body) => JSON.parse(body.replace(/^<!--json:|-->(.|\n|\r)*$/g, ''));
 
