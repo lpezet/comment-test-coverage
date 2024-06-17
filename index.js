@@ -68,7 +68,9 @@ async function run() {
 async function deletePreviousComments({ id, owner, repo, octokit, issueNumber }) {
   const onlyPreviousCoverageComments = (comment) => {
     // const regexMarker = /^<!--json:{.*?}-->/;
-    const regexMarker = new RegExp(`^<!--json:${JSON.stringify(id)}-->`);
+    const escapedId = id.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // Escape special characters
+
+    const regexMarker = new RegExp(`^<!--json:${JSON.stringify(escapedId)}-->`);
     const extractMetaFromMarker = (body) => JSON.parse(body.replace(/^<!--json:|-->(.|\n|\r)*$/g, ''));
 
     if (comment.user.type !== 'Bot') return false;
