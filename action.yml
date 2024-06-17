@@ -13,7 +13,7 @@ inputs:
     default: 'Test Coverage'
   id:
     description: 'Unique identifier for this comment. Specify a different value for each project in a monorepo.'
-    requred: false
+    required: false
     default: 'comment-test-coverage-1'
 runs:
   using: 'node12'
