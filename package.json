@@ -8,15 +8,22 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/AthleticNet/comment-test-coverage.git"
+    "url": "git+https://github.com/lpezet/comment-test-coverage.git"
   },
   "keywords": [],
   "author": "Jacob Bowdoin",
+  "contributors": [
+    {
+      "name": "Luke Pezet",
+      "email": "lpezet@gmail.com",
+      "url": "https://lpezet.github.io/"
+    }
+  ],
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/AthleticNet/comment-test-coverage/issues"
+    "url": "https://github.com/lpezet/comment-test-coverage/issues"
   },
-  "homepage": "https://github.com/AthleticNet/comment-test-coverage#readme",
+  "homepage": "https://github.com/lpezet/comment-test-coverage#readme",
   "dependencies": {
     "@actions/core": "^1.2.6",
     "@actions/github": "^4.0.0"
