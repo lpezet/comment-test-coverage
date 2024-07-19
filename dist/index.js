@@ -31129,7 +31129,7 @@ async function run() {
       repo,
     });
 
-    await octokit.issues.createComment({
+    await octokit.rest.issues.createComment({
       owner,
       repo,
       issue_number: issueNumber,
@@ -31155,10 +31155,10 @@ async function deletePreviousComments({ id, owner, repo, octokit, issueNumber })
   }
 
   const asyncDeleteComment = (comment) => {
-    return octokit.issues.deleteComment({ owner, repo, comment_id: comment.id });
+    return octokit.rest.issues.deleteComment({ owner, repo, comment_id: comment.id });
   }
 
-  const commentList = await octokit.issues.listComments({
+  const commentList = await octokit.rest.issues.listComments({
     owner,
     repo,
     issue_number: issueNumber,
