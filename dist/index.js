@@ -31171,22 +31171,21 @@ async function createOrUpdateComment({ id, issueNumber, octokit, owner, repo, bo
   }).then(response => response.data);
 
   const filteredCommentList = commentList.filter(onlyPreviousCoverageComments);
-  console.log('Filtered comments:');
-  console.log(filteredCommentList);
+  //console.log('Filtered comments:');
+  //console.log(filteredCommentList);
   if (filteredCommentList && filteredCommentList.length > 0) {
     console.log('Updating comment...');
-    console.log(filteredCommentList[0]);
-    //octokit.rest.issues.updateComment({ owner, repo, comment_id: comment.id, body });
+    //console.log(filteredCommentList[0]);
+    const comment = filteredCommentList[0];
+    octokit.rest.issues.updateComment({ owner, repo, comment_id: comment.id, body });
   } else {
     console.log('Creating comment...');
-    /*
     await octokit.rest.issues.createComment({
       owner,
       repo,
       issue_number: issueNumber,
       body,
     });
-    */
   }
 }
 
