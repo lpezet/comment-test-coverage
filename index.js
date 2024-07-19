@@ -94,12 +94,12 @@ async function createOrUpdateComment({ id, issueNumber, octokit, owner, repo, bo
   //console.log('Filtered comments:');
   //console.log(filteredCommentList);
   if (filteredCommentList && filteredCommentList.length > 0) {
-    console.log('Updating comment...');
-    //console.log(filteredCommentList[0]);
     const comment = filteredCommentList[0];
+    console.log('Updating comment #' + comment.id + '...');
+    //console.log(filteredCommentList[0]);
     octokit.rest.issues.updateComment({ owner, repo, comment_id: comment.id, body });
   } else {
-    console.log('Creating comment...');
+    console.log('Creating new comment...');
     await octokit.rest.issues.createComment({
       owner,
       repo,
