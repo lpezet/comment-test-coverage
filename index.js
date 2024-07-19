@@ -41,6 +41,15 @@ async function run() {
 |Lines          |${json.total.lines.pct}%     |( ${json.total.lines.covered} / ${json.total.lines.total} )          |
 `;
 
+    await createOrUpdateComment({
+      id: inputs.id,
+      issueNumber,
+      octokit,
+      owner,
+      repo,
+      body: coverage,
+    });
+    /*
     await deletePreviousComments({
       id: inputs.id,
       issueNumber,
@@ -49,15 +58,54 @@ async function run() {
       repo,
     });
 
-    await octokit.issues.createComment({
+    await octokit.rest.issues.createComment({
       owner,
       repo,
       issue_number: issueNumber,
       body: coverage,
     });
+    */
   } catch (error) {
     core.debug(inspect(error));
     core.setFailed(error.message);
+  }
+}
+
+async function createOrUpdateComment({ id, issueNumber, octokit, owner, repo, body}) {
+  const onlyPreviousCoverageComments = (comment) => {
+    const regexMarker = /^<!--json:{.*?}-->/;
+    const extractMetaFromMarker = (body) => JSON.parse(body.replace(/^<!--json:|-->(.|\n|\r)*$/g, ''));
+
+    if (comment.user.type !== 'Bot') return false;
+    if (!regexMarker.test(comment.body)) return false;
+
+    const meta = extractMetaFromMarker(comment.body);
+
+    return meta.commentFrom === id;
+  }
+
+  const commentList = await octokit.rest.issues.listComments({
+    owner,
+    repo,
+    issue_number: issueNumber,
+  }).then(response => response.data);
+
+  const filteredCommentList = commentList.filter(onlyPreviousCoverageComments);
+  //console.log('Filtered comments:');
+  //console.log(filteredCommentList);
+  if (filteredCommentList && filteredCommentList.length > 0) {
+    const comment = filteredCommentList[0];
+    console.log('Updating comment #' + comment.id + '...');
+    //console.log(filteredCommentList[0]);
+    octokit.rest.issues.updateComment({ owner, repo, comment_id: comment.id, body });
+  } else {
+    console.log('Creating new comment...');
+    await octokit.rest.issues.createComment({
+      owner,
+      repo,
+      issue_number: issueNumber,
+      body,
+    });
   }
 }
 
@@ -75,10 +123,10 @@ async function deletePreviousComments({ id, owner, repo, octokit, issueNumber })
   }
 
   const asyncDeleteComment = (comment) => {
-    return octokit.issues.deleteComment({ owner, repo, comment_id: comment.id });
+    return octokit.rest.issues.deleteComment({ owner, repo, comment_id: comment.id });
   }
 
-  const commentList = await octokit.issues.listComments({
+  const commentList = await octokit.rest.issues.listComments({
     owner,
     repo,
     issue_number: issueNumber,
