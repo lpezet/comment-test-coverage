@@ -1,6 +1,46 @@
 # Comment Test Coverage from a json-summary file
 
 A GitHub action to comment on a PR on GitHub with a simple test coverage summary table that edits itself on successive pushes to the same PR.
+**Forked**
+This fork supports monorepos by passing an `id` to the action when necessary, which will be used to create and lookup a comment on the PR.
+
+## Monorepo
+
+Here's how to use comment-test-coverage in a monorepo setup:
+
+```yml
+name: run-coverage
+
+on: [pull_request]
+
+jobs:
+  lint-and-test:
+    runs-on: ubuntu-latest
+    env:
+      CI: true
+    steps:
+    - uses: actions/checkout@v4
+    - name: Use Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+    - run: npm install && npm run package
+
+    - uses: lpezet/comment-test-coverage@@v1.3.0
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        path: test/_stubs/coverage-summary-100-pct.json
+        title: Test Coverage - Project 1
+        # id below is new and allow to differentiate between comments
+        id: project-1
+    
+    - uses: lpezet/comment-test-coverage@@v1.3.0
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        path: test/_stubs/coverage-summary-90-pct.json
+        title: Test Coverage - Project 2
+        id: project-2
+```
 
 ## How to use with Karma + Angular
 1. Add `"codeCoverage": true,` under test > options in angular.json
@@ -83,7 +123,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v1
+        uses: actions/checkout@v4
 
       - name: Run Jasmine tests
         run: npm run test -- --no-watch --no-progress --browsers=ChromeHeadlessCI
