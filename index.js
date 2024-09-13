@@ -15,7 +15,7 @@ async function run() {
     issue_number = inputs.issue_number;
     if ( issue_number === '') {
       const {
-        payload: { pull_request: pullRequest, repository },
+        payload: { pull_request: pullRequest },
       } = github.context;
       if (!pullRequest) {
         core.error("issue_number not provided and this is not a pull_request event. Exiting.");
@@ -27,7 +27,7 @@ async function run() {
 
     // const { number: issueNumber } = pullRequest;
     // const { full_name: repoFullName } = repository;
-    const [owner, repo] = github.repository.split("/");
+    const [owner, repo] = github.context.repository.split("/");
 
     const octokit = new github.getOctokit(inputs.token);
 
