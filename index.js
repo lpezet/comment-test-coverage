@@ -12,7 +12,7 @@ async function run() {
       id: core.getInput("id"),
       issue_number: core.getInput("issue_number"),
     };
-    issue_number = input.issue_number;
+    issue_number = inputs.issue_number;
     if ( issue_number === '') {
       const {
         payload: { pull_request: pullRequest, repository },
