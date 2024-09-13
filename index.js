@@ -27,7 +27,9 @@ async function run() {
 
     // const { number: issueNumber } = pullRequest;
     // const { full_name: repoFullName } = repository;
-    const [owner, repo] = github.context.repository.split("/");
+    // const [owner, repo] = github.context.repository.split("/");
+    const owner = github.context.repo.owner;
+    const repo = github.context.repo.repo;
 
     const octokit = new github.getOctokit(inputs.token);
 
