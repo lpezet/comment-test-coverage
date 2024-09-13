@@ -31105,7 +31105,7 @@ async function run() {
     }
     
 
-    // const { number: issueNumber } = pullRequest;
+    // const { number: issue_number } = pullRequest;
     // const { full_name: repoFullName } = repository;
     // const [owner, repo] = github.context.repository.split("/");
     const owner = github.context.repo.owner;
@@ -31132,7 +31132,7 @@ async function run() {
 
     await createOrUpdateComment({
       id: inputs.id,
-      issueNumber,
+      issue_number,
       octokit,
       owner,
       repo,
@@ -31141,7 +31141,7 @@ async function run() {
     /*
     await deletePreviousComments({
       id: inputs.id,
-      issueNumber,
+      issue_number,
       octokit,
       owner,
       repo,
@@ -31150,7 +31150,7 @@ async function run() {
     await octokit.rest.issues.createComment({
       owner,
       repo,
-      issue_number: issueNumber,
+      issue_number: issue_number,
       body: coverage,
     });
     */
@@ -31162,7 +31162,7 @@ async function run() {
 
 async function createOrUpdateComment({
   id,
-  issueNumber,
+  issue_number,
   octokit,
   owner,
   repo,
@@ -31185,7 +31185,7 @@ async function createOrUpdateComment({
     .listComments({
       owner,
       repo,
-      issue_number: issueNumber,
+      issue_number: issue_number,
     })
     .then((response) => response.data);
 
@@ -31207,7 +31207,7 @@ async function createOrUpdateComment({
     await octokit.rest.issues.createComment({
       owner,
       repo,
-      issue_number: issueNumber,
+      issue_number: issue_number,
       body,
     });
   }
