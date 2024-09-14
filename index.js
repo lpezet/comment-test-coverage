@@ -58,22 +58,6 @@ async function run() {
       repo,
       body: coverage,
     });
-    /*
-    await deletePreviousComments({
-      id: inputs.id,
-      issue_number,
-      octokit,
-      owner,
-      repo,
-    });
-
-    await octokit.rest.issues.createComment({
-      owner,
-      repo,
-      issue_number: issue_number,
-      body: coverage,
-    });
-    */
   } catch (error) {
     core.debug(inspect(error));
     core.setFailed(error.message);
