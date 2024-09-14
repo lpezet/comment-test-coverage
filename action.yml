@@ -15,6 +15,10 @@ inputs:
     description: 'Unique identifier for this comment. Specify a different value for each project in a monorepo.'
     required: false
     default: 'comment-test-coverage-1'
+  issue_number:
+    description: 'Issue number. Used if provided, to work outside pull_request events.'
+    required: false
+    default: ''
 runs:
   using: 'node20'
   main: 'dist/index.js'
