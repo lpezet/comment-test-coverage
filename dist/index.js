@@ -31090,28 +31090,37 @@ async function run() {
       path: core.getInput("path"),
       title: core.getInput("title"),
       id: core.getInput("id"),
+      issue_number: core.getInput("issue_number"),
     };
-
-    const {
-      payload: { pull_request: pullRequest, repository }
-    } = github.context;
-
-    if (!pullRequest) {
-      core.error("This action only works on pull_request events");
-      return;
+    issue_number = inputs.issue_number;
+    if ( issue_number === '') {
+      const {
+        payload: { pull_request: pullRequest },
+      } = github.context;
+      if (!pullRequest) {
+        core.error("issue_number not provided and this is not a pull_request event. Exiting.");
+        return;
+      }
+      issue_number = pullRequest.number;
     }
+    
 
-    const { number: issueNumber } = pullRequest;
-    const { full_name: repoFullName } = repository;
-    const [owner, repo] = repoFullName.split("/");
+    // const { number: issue_number } = pullRequest;
+    // const { full_name: repoFullName } = repository;
+    // const [owner, repo] = github.context.repository.split("/");
+    const owner = github.context.repo.owner;
+    const repo = github.context.repo.repo;
 
     const octokit = new github.getOctokit(inputs.token);
 
-    const data = fs.readFileSync(`${process.env.GITHUB_WORKSPACE}/${inputs.path}`, 'utf8');
+    const data = fs.readFileSync(
+      `${process.env.GITHUB_WORKSPACE}/${inputs.path}`,
+      "utf8"
+    );
     const json = JSON.parse(data);
     const meta = {
       commentFrom: inputs.id,
-    }
+    };
     const coverage = `<!--json:${JSON.stringify(meta)}-->
 |${inputs.title}| %                           | values                                                              |
 |---------------|:---------------------------:|:-------------------------------------------------------------------:|
@@ -31123,100 +31132,69 @@ async function run() {
 
     await createOrUpdateComment({
       id: inputs.id,
-      issueNumber,
+      issue_number,
       octokit,
       owner,
       repo,
       body: coverage,
     });
-    /*
-    await deletePreviousComments({
-      id: inputs.id,
-      issueNumber,
-      octokit,
-      owner,
-      repo,
-    });
-
-    await octokit.rest.issues.createComment({
-      owner,
-      repo,
-      issue_number: issueNumber,
-      body: coverage,
-    });
-    */
   } catch (error) {
     core.debug(inspect(error));
     core.setFailed(error.message);
   }
 }
 
-async function createOrUpdateComment({ id, issueNumber, octokit, owner, repo, body}) {
+async function createOrUpdateComment({
+  id,
+  issue_number,
+  octokit,
+  owner,
+  repo,
+  body,
+}) {
   const onlyPreviousCoverageComments = (comment) => {
     const regexMarker = /^<!--json:{.*?}-->/;
-    const extractMetaFromMarker = (body) => JSON.parse(body.replace(/^<!--json:|-->(.|\n|\r)*$/g, ''));
+    const extractMetaFromMarker = (body) =>
+      JSON.parse(body.replace(/^<!--json:|-->(.|\n|\r)*$/g, ""));
 
-    if (comment.user.type !== 'Bot') return false;
+    if (comment.user.type !== "Bot") return false;
     if (!regexMarker.test(comment.body)) return false;
 
     const meta = extractMetaFromMarker(comment.body);
 
     return meta.commentFrom === id;
-  }
+  };
 
-  const commentList = await octokit.rest.issues.listComments({
-    owner,
-    repo,
-    issue_number: issueNumber,
-  }).then(response => response.data);
+  const commentList = await octokit.rest.issues
+    .listComments({
+      owner,
+      repo,
+      issue_number: issue_number,
+    })
+    .then((response) => response.data);
 
   const filteredCommentList = commentList.filter(onlyPreviousCoverageComments);
   //console.log('Filtered comments:');
   //console.log(filteredCommentList);
   if (filteredCommentList && filteredCommentList.length > 0) {
     const comment = filteredCommentList[0];
-    console.log('Updating comment #' + comment.id + '...');
+    console.log("Updating comment #" + comment.id + "...");
     //console.log(filteredCommentList[0]);
-    octokit.rest.issues.updateComment({ owner, repo, comment_id: comment.id, body });
+    octokit.rest.issues.updateComment({
+      owner,
+      repo,
+      comment_id: comment.id,
+      body,
+    });
   } else {
-    console.log('Creating new comment...');
+    console.log("Creating new comment...");
     await octokit.rest.issues.createComment({
       owner,
       repo,
-      issue_number: issueNumber,
+      issue_number: issue_number,
       body,
     });
   }
-}
-
-async function deletePreviousComments({ id, owner, repo, octokit, issueNumber }) {
-  const onlyPreviousCoverageComments = (comment) => {
-    const regexMarker = /^<!--json:{.*?}-->/;
-    const extractMetaFromMarker = (body) => JSON.parse(body.replace(/^<!--json:|-->(.|\n|\r)*$/g, ''));
-
-    if (comment.user.type !== 'Bot') return false;
-    if (!regexMarker.test(comment.body)) return false;
-
-    const meta = extractMetaFromMarker(comment.body);
-
-    return meta.commentFrom === id;
-  }
-
-  const asyncDeleteComment = (comment) => {
-    return octokit.rest.issues.deleteComment({ owner, repo, comment_id: comment.id });
-  }
-
-  const commentList = await octokit.rest.issues.listComments({
-    owner,
-    repo,
-    issue_number: issueNumber,
-  }).then(response => response.data);
-
-  await Promise.all(
-    commentList
-    .filter(onlyPreviousCoverageComments)
-    .map(asyncDeleteComment)
-  );
 }
 
 run();

@@ -3,6 +3,7 @@
 A GitHub action to comment on a PR on GitHub with a simple test coverage summary table that edits itself on successive pushes to the same PR.
 **Forked**
 This fork supports monorepos by passing an `id` to the action when necessary, which will be used to create and lookup a comment on the PR.
+Added optional input `issue_number` to work outside of `pull_request` events.
 
 ## Monorepo
 
@@ -26,15 +27,17 @@ jobs:
         node-version: '20'
     - run: npm install && npm run package
 
-    - uses: lpezet/comment-test-coverage@@v1.3.0
+    - uses: lpezet/comment-test-coverage@@v2.0.0
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
         path: test/_stubs/coverage-summary-100-pct.json
         title: Test Coverage - Project 1
         # id below is new and allow to differentiate between comments
         id: project-1
+        # (optional) if event is not a pull_request, specify issue_number to make it work
+        issue_number: 123
     
-    - uses: lpezet/comment-test-coverage@@v1.3.0
+    - uses: lpezet/comment-test-coverage@@v2.0.0
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
         path: test/_stubs/coverage-summary-90-pct.json
