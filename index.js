@@ -4,7 +4,7 @@ const github = require("@actions/github");
 const glob = require("@actions/glob");
 const fs = require("fs");
 
-async function processFile(filePath, inputs, octokit) {
+async function processFile(filePath, inputs, extras) {
   const data = fs.readFileSync(
     // `${process.env.GITHUB_WORKSPACE}/${filePath}`,
     filePath,
@@ -29,10 +29,10 @@ async function processFile(filePath, inputs, octokit) {
   }
   await createOrUpdateComment({
     id: inputs.id,
-    issue_number,
-    octokit,
-    owner,
-    repo,
+    issue_number: extras.issue_number,
+    octokit: extras.octokit,
+    owner: extras.owner,
+    repo: extras.repo,
     body: coverage,
   });
 }
@@ -97,7 +97,7 @@ async function run() {
         id = id.replace(new RegExp(`\\$\\{${key}\\}`, 'g'), value);
       }
 
-      await processFile(filePath, { ...inputs, title, id }, octokit);
+      await processFile(filePath, { ...inputs, title, id }, { octokit, owner, repo, issue_number });
     }
   } catch (error) {
     core.debug(inspect(error));
