@@ -22,13 +22,20 @@ jobs:
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
         path: test/_stubs/coverage-summary-100-pct.json
-        title: Test Coverage - Project 1
+        title: Test Coverage - Stub 100 pct
         id: project-1
     
     - uses: ./
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
         path: test/_stubs/coverage-summary-90-pct.json
-        title: Test Coverage - Project 2
+        title: Test Coverage - Stub 90 pct
         id: project-2
+
+    - uses: ./
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        path: test/(?<app>app[^/]+)/coverage-summary-90-pct.json
+        title: Test Coverage - ${app}
+        id: ${app}
     

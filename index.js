@@ -1,7 +1,41 @@
 const { inspect } = require("util");
 const core = require("@actions/core");
 const github = require("@actions/github");
+const glob = require("@actions/glob");
 const fs = require("fs");
+
+async function processFile(filePath, inputs, octokit) {
+  const data = fs.readFileSync(
+    // `${process.env.GITHUB_WORKSPACE}/${filePath}`,
+    filePath,
+    "utf8"
+  );
+  const json = JSON.parse(data);
+  const meta = {
+    commentFrom: inputs.id,
+  };
+  const coverage = `<!--json:${JSON.stringify(meta)}-->
+|${inputs.title}| %                           | values                                                              |
+|---------------|:---------------------------:|:-------------------------------------------------------------------:|
+|Statements     |${json.total.statements.pct}%|( ${json.total.statements.covered} / ${json.total.statements.total} )|
+|Branches       |${json.total.branches.pct}%  |( ${json.total.branches.covered} / ${json.total.branches.total} )    |
+|Functions      |${json.total.functions.pct}% |( ${json.total.functions.covered} / ${json.total.functions.total} )  |
+|Lines          |${json.total.lines.pct}%     |( ${json.total.lines.covered} / ${json.total.lines.total} )          |
+`;
+  if (inputs.dry_run) {
+    console.log("WARNING:Dry run mode enabled. Skipping comment creation.");
+    console.log(coverage);
+    return;
+  }
+  await createOrUpdateComment({
+    id: inputs.id,
+    issue_number,
+    octokit,
+    owner,
+    repo,
+    body: coverage,
+  });
+}
 
 async function run() {
   try {
@@ -11,7 +45,8 @@ async function run() {
       title: core.getInput("title"),
       id: core.getInput("id"),
       issue_number: core.getInput("issue_number"),
-    };
+      dry_run: core.getInput("dry_run"),
+    };    
     issue_number = inputs.issue_number;
     if ( issue_number === '') {
       const {
@@ -23,7 +58,6 @@ async function run() {
       }
       issue_number = pullRequest.number;
     }
-    
 
     // const { number: issue_number } = pullRequest;
     // const { full_name: repoFullName } = repository;
@@ -33,31 +67,38 @@ async function run() {
 
     const octokit = new github.getOctokit(inputs.token);
 
-    const data = fs.readFileSync(
-      `${process.env.GITHUB_WORKSPACE}/${inputs.path}`,
-      "utf8"
-    );
-    const json = JSON.parse(data);
-    const meta = {
-      commentFrom: inputs.id,
-    };
-    const coverage = `<!--json:${JSON.stringify(meta)}-->
-|${inputs.title}| %                           | values                                                              |
-|---------------|:---------------------------:|:-------------------------------------------------------------------:|
-|Statements     |${json.total.statements.pct}%|( ${json.total.statements.covered} / ${json.total.statements.total} )|
-|Branches       |${json.total.branches.pct}%  |( ${json.total.branches.covered} / ${json.total.branches.total} )    |
-|Functions      |${json.total.functions.pct}% |( ${json.total.functions.covered} / ${json.total.functions.total} )  |
-|Lines          |${json.total.lines.pct}%     |( ${json.total.lines.covered} / ${json.total.lines.total} )          |
-`;
+    // Resolve files matching the path pattern
+    const genericGlobPattern = inputs.path.replace(/\(\?<.*?>.*?\)/g, '*'); // Replace named groups with wildcards
+    const globber = await glob.create(genericGlobPattern);
+    const candidateFiles = await globber.glob();
 
-    await createOrUpdateComment({
-      id: inputs.id,
-      issue_number,
-      octokit,
-      owner,
-      repo,
-      body: coverage,
-    });
+    if (candidateFiles.length === 0) {
+      core.setFailed(`No files matched the path: ${inputs.path}`);
+      return;
+    }
+
+    const regex = new RegExp(inputs.path);
+    for (const filePath of candidateFiles) {
+      const match = regex.exec(filePath);
+
+      if (!match) {
+        core.info(`Skipping file as it does not match the regex: ${filePath}`);
+        continue;
+      } else {
+        core.info(`File [${filePath}] matches regex [${inputs.path}]`);
+      }
+
+      const namedGroups = match.groups || {};
+      let title = inputs.title;
+      let id = inputs.id;
+
+      for (const [key, value] of Object.entries(namedGroups)) {
+        title = title.replace(new RegExp(`\\$\\{${key}\\}`, 'g'), value);
+        id = id.replace(new RegExp(`\\$\\{${key}\\}`, 'g'), value);
+      }
+
+      await processFile(filePath, { ...inputs, title, id }, octokit);
+    }
   } catch (error) {
     core.debug(inspect(error));
     core.setFailed(error.message);

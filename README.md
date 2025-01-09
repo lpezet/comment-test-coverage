@@ -140,6 +140,16 @@ jobs:
           id: project-2
 ```
 
+## Testing
+
+```bash
+env GITHUB_WORKSPACE="" GITHUB_REPOSITORY=test/acme INPUT_DRY_RUN=1 INPUT_TOKEN=dummy_token INPUT_PATH=test/_stubs/coverage-summary-90-pct.json INPUT_ID=test-1 INPUT_ISSUE_NUMBER=ISS1 node index.js 
+```
+
+```bash
+env GITHUB_WORKSPACE="" GITHUB_REPOSITORY=test/acme INPUT_DRY_RUN=1 INPUT_TOKEN=dummy_token INPUT_PATH='test/(?<app>app[^/]+)/coverage-summary-90-pct.json' INPUT_ID='${app}' INPUT_ISSUE_NUMBER=ISS1 node index.js
+```
+
 
 ## License
 
